@@ -1,0 +1,37 @@
+volumes:
+  pg_data:
+  static: # Общий том для статики
+
+services:
+  db:
+    image: postgres:13.10
+    env_file: .env
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend/
+    env_file: .env
+    volumes:
+      - static:/backend_static # Подключаем том к бэкенду
+    depends_on:
+      - db
+
+  frontend:
+    build: ./frontend/
+    env_file: .env
+    volumes:
+      - static:/frontend_static # Подключаем том к фронтенду
+    # Переопределяем CMD: копируем готовую сборку фронтенда на общий том
+    command: cp -r /app/build/. /frontend_static/.
+    depends_on:
+      - backend
+
+  gateway:
+    build: ./gateway/
+    volumes:
+      - static:/staticfiles # Nginx забирает статику бэкенда и фронтенда отсюда
+    ports:
+      - "8000:80" # Nginx слушает порт 8000
+    depends_on:
+      - frontend
