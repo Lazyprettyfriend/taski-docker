@@ -1,3 +1,5 @@
+"""Настройки Django для проекта backend."""
+
 import os
 from pathlib import Path
 
